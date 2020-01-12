@@ -9,7 +9,7 @@
 #include <unistd.h>
 
 
-#define assert(expr, msg) if(!(expr)) { printf("%s:%d %s()\nFailed: %s\nMessage: %s\n",__FILE__,__LINE__, __func__, #expr, msg); *(int *)0 = 0; }
+#define assert(expr, msg) if(!(expr)) { printf("%s:%d %s()\nFailed: %s\nMessage: %s\n",__FILE__,__LINE__, __func__, #expr, msg); *(volatile int *)0 = 0; }
 
 #define map_width 34
 #define map_height 16
@@ -102,9 +102,7 @@ int main() {
     char * screen_buffer = malloc(screen_height * screen_width);
 
 
-	char input = 0;
-    int x = 1;
-    int y = 1;
+	//char input = 0;
 #define snowflakes_max 100 
     V2 snowflakes[snowflakes_max]; 
     for (int i = 0; i < snowflakes_max; ++i) {
