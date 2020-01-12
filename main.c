@@ -9,10 +9,6 @@
 #include <unistd.h>
 
 
-
-
-
-
 #define assert(expr, msg) if(!(expr)) { printf("%s:%d %s()\nFailed: %s\nMessage: %s\n",__FILE__,__LINE__, __func__, #expr, msg); *(int *)0 = 0; }
 
 #define map_width 34
@@ -39,9 +35,11 @@ void writexy(char * screen_buffer, int init_x, int init_y, char * string) {
             x = init_x;
         }
         else {
-            screen_buffer[x + y * screen_width] = string[i];
+            assert(x +y * screen_width <= screen_width * screen_height, "writexy string is greater than screen size!");
+	    if (x < screen_width && y < screen_height) {
+		screen_buffer[x + y * screen_width] = string[i];
+	    }
             ++x;
-            if (x > screen_width) break;
         }
     }
 }
@@ -149,9 +147,11 @@ int main() {
 
 
         // draw trees
-        for (int i = 0;i < 44; i++) {
-            writexy(screen_buffer, 0, screen_height - screen_height* 0.3-40 + i, trees);
-            writexy(screen_buffer, 88, screen_height - screen_height* 0.3-40 + i, trees);
+        for (int i = 0;i < screen_height -9; i++) {
+            writexy(screen_buffer, 0, i, trees);
+            writexy(screen_buffer, 88, i, trees);
+            //writexy(screen_buffer, 0, screen_height - screen_height* 0.3-40 + i, trees);
+            //writexy(screen_buffer, 88, screen_height - screen_height* 0.3-40 + i, trees);
         }
 
 
