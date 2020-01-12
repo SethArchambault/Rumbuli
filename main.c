@@ -13,7 +13,7 @@
 
 
 
-#define assert(expr, msg) if(!(expr)) { printf("%s:%d %s()\nFailed: %s\nMessage: %s\n",__FILE__,__LINE__, __func__, #expr, msg); __builtin_trap(); }
+#define assert(expr, msg) if(!(expr)) { printf("%s:%d %s()\nFailed: %s\nMessage: %s\n",__FILE__,__LINE__, __func__, #expr, msg); *(int *)0 = 0; }
 
 #define map_width 34
 #define map_height 16
@@ -35,11 +35,13 @@ void writexy(char * screen_buffer, int init_x, int init_y, char * string) {
     for (int i = 0; string[i] != '\0'; ++i) {
         if (string[i] == '\n') {
             ++y;
+            if (y > screen_height) break;
             x = init_x;
         }
         else {
             screen_buffer[x + y * screen_width] = string[i];
             ++x;
+            if (x > screen_width) break;
         }
     }
 }
@@ -66,6 +68,7 @@ void printxy(int x, int y, char * string) {
     }
     int additional_newline = 0;
     for (int i = 0; string[i] != '\0'; ++i) {
+        assert(i <= screen_width * screen_height, "print string is greater than screen size!");
         printf("%c", string[i]);
         if (string[i] == '\n') {
             ++additional_newline;
@@ -114,6 +117,11 @@ int main() {
     srand(time(NULL));  
 	//for (; input != 'q';) {
     
+    // at some point we'll want to just bring this into the game editor, and allow changing 
+    // color + texture. then we'll just reference everything based on that. 
+    // we can have texture packs and color packs. I like the idea of creative restrictions built in. 
+
+    
     char landscape[] = 
         "--         -------         ----------                ---      -------          --------- \n"
         "  \\       /       \\      /           \\            /    \\----/       \\       /           \n"
@@ -135,8 +143,9 @@ int main() {
         }
         ++timer;
 
-        writexy(screen_buffer, 0, screen_height - screen_height* 0.2, landscape);
-        writexy(screen_buffer, 88, screen_height - screen_height* 0.2, landscape);
+        // draw landscape
+        writexy(screen_buffer, 0, screen_height - 9, landscape);
+        writexy(screen_buffer, 88, screen_height - 9, landscape);
 
 
         // draw trees
@@ -198,6 +207,7 @@ int main() {
         usleep(250000);
 	}
 
+    // never reached
     char goodbye_msg[] = "Mistakes happen and are okay.";
     // centering
     int goodbye_x = screen_width/ 2 - (strlen(goodbye_msg)/ 2);
