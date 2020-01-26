@@ -1,6 +1,5 @@
 // ctrl-c to quit currently
 // do not build this directly. build linux_main.c or win_main.c
-#include "main.h"
 
 #include<signal.h> // interrupt
 #include<time.h> // random
@@ -18,11 +17,6 @@ typedef struct {
 #define map_width 34
 #define map_height 16
 
-// used in the beginning and in the interrupt 
-void screen_init(Screen * screen) {
-    platform_set_screen_size(&screen->width, &screen->height);
-    screen->buffer = malloc(screen->height * screen->width);
-}
 
 void clear_buffer(Screen * screen) {
     for (int i = 0; i < screen->width * screen->height; ++i) {
@@ -66,6 +60,12 @@ void print_buffer(Screen * screen) {
     fflush(stdout);
 }
 
+// used in the beginning and in the interrupt 
+void screen_init(Screen * screen) {
+    platform_set_screen_size(&screen->width, &screen->height);
+    screen->buffer = malloc(screen->height * screen->width);
+}
+
 void ending(Screen * screen) {
     clear_buffer(screen);
     char goodbye_msg[] = "Mistakes happen and are okay.";
@@ -85,6 +85,9 @@ void interrupt_handler(int sigint) {
     abort();
 }
 
+
+#if 0
+// not used right now
 char get_input(){
 	system ("/bin/stty raw");
 	char input = '0';
@@ -94,6 +97,7 @@ char get_input(){
 	system ("/bin/stty cooked");
 	return input;
 }
+#endif
 
 
 
@@ -133,7 +137,6 @@ int main() {
     
     int timer = 0;
 
-
     int floor[1000] = {0};
 	for (; ;) {
         // clear buffer
@@ -145,13 +148,11 @@ int main() {
         writexy(&screen, 0, screen.height - 9, landscape);
         writexy(&screen, 88, screen.height - 9, landscape);
 
-
         // draw trees
         for (int i = 0;i < screen.height -9; i++) {
             writexy(&screen, 0, i, trees);
             writexy(&screen, 88, i, trees);
         }
-
 
         // draw snowflake
         for (int i = 0; i < snowflakes_max; ++i) {
@@ -191,15 +192,12 @@ int main() {
             }
         }
 
-#if 1
         // title
         if (timer < 5*4) {
             char msg[] = "Rumbuli 1941\n";
             writexy(&screen, screen.width /2 - 12 /2, screen.height/2, msg);
         }
 
-#endif
-        // @Todo: write elements to array instead, then print all at once
         // @Todo: count time, subtract here, so that it is always the same framerate. 
         print_buffer(&screen);
         platform_sleep(250000);

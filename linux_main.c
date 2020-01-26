@@ -1,5 +1,5 @@
 #include "main.h"
-#include <sys/ioctl.h>
+#include <sys/ioctl.h> // screen_size
 #include <unistd.h>
 
 void platform_set_screen_size(int * screen_width, int * screen_height) {
