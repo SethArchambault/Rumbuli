@@ -6,20 +6,27 @@
 #include<time.h> // random
 
 // @todo: turn this into state that gets passed around
-int screen_width;
-int screen_height;
 
-
+typedef struct {
+    int width;
+    int height;
+    char * buffer;
+} Screen;
 
 #define assert(expr, msg) if(!(expr)) { printf("%s:%d %s()\nFailed: %s\nMessage: %s\n",__FILE__,__LINE__, __func__, #expr, msg); *(volatile int *)0 = 0; }
 
 #define map_width 34
 #define map_height 16
 
+// used in the beginning and in the interrupt 
+void screen_init(Screen * screen) {
+    platform_set_screen_size(&screen->width, &screen->height);
+    screen->buffer = malloc(screen->height * screen->width);
+}
 
-void clear_buffer(char * buffer, int length) {
-    for (int i = 0; i < length; ++i) {
-        buffer[i] = ' ';
+void clear_buffer(Screen * screen) {
+    for (int i = 0; i < screen->width * screen->height; ++i) {
+        screen->buffer[i] = ' ';
     }
 }
 // BASICS
@@ -29,20 +36,20 @@ typedef struct {
     int y;
 } V2;
 
-void writexy(char * screen_buffer, int init_x, int init_y, char * string) {
+void writexy(Screen * screen, int init_x, int init_y, char * string) {
     int x = init_x;
     int y = init_y;
 
     for (int i = 0; string[i] != '\0'; ++i) {
         if (string[i] == '\n') {
             ++y;
-            if (y > screen_height) break;
+            if (y > screen->height) break;
             x = init_x;
         }
         else {
-            assert(x +y * screen_width <= screen_width * screen_height, "writexy string is greater than screen size!");
-            if (x < screen_width && y < screen_height) {
-                screen_buffer[x + y * screen_width] = string[i];
+            assert(x +y * screen->width <= screen->width * screen->height, "writexy string is greater than screen size!");
+            if (x < screen->width && y < screen->height) {
+                screen->buffer[x + y * screen->width] = string[i];
             }
             ++x;
         }
@@ -50,30 +57,30 @@ void writexy(char * screen_buffer, int init_x, int init_y, char * string) {
 }
     
 
-void print_buffer(char * string) {
+void print_buffer(Screen * screen) {
     platform_reset_cursor(0,0);
-    assert(strlen(string) <= screen_width * screen_height, "print_buffer string is greater than screen size!");
-    for (int i = 0; string[i] != '\0'; ++i) {
-        printf("%c", string[i]);
+    assert(strlen(screen->buffer) <= screen->width * screen->height, "print_buffer string is greater than screen size!");
+    for (int i = 0; screen->buffer[i] != '\0'; ++i) {
+        printf("%c", screen->buffer[i]);
     }
     fflush(stdout);
 }
 
-void ending() {
-    char * screen_buffer = malloc(screen_height * screen_width);
-    clear_buffer(screen_buffer, screen_height * screen_width);
-    // never reached
+void ending(Screen * screen) {
+    clear_buffer(screen);
     char goodbye_msg[] = "Mistakes happen and are okay.";
     // centering
-    int goodbye_x = screen_width/ 2 - (strlen(goodbye_msg)/ 2);
-    int goodbye_y = (screen_height) / 2;
-    writexy(screen_buffer, goodbye_x,goodbye_y,goodbye_msg);
-    print_buffer(screen_buffer);
+    int goodbye_x = screen->width/ 2 - (strlen(goodbye_msg)/ 2);
+    int goodbye_y = (screen->height) / 2;
+    writexy(screen, goodbye_x,goodbye_y,goodbye_msg);
+    print_buffer(screen);
     platform_show_cursor();
 }
 
 void interrupt_handler(int sigint) {
-    ending();
+    Screen screen;
+    screen_init(&screen);
+    ending(&screen);
     platform_show_cursor();
     abort();
 }
@@ -91,21 +98,19 @@ char get_input(){
 
 
 int main() {
+    Screen screen;
+    screen_init(&screen);
+    
     platform_hide_cursor();
     signal(SIGINT, interrupt_handler);
-    // p = platform layer
-    platform_set_screen_size(&screen_width, &screen_height);
-
-    char * screen_buffer = malloc(screen_height * screen_width);
-
 
 	//char input = 0;
 #define snowflakes_max 100 
     V2 snowflakes[snowflakes_max]; 
     for (int i = 0; i < snowflakes_max; ++i) {
         V2 *flake = &snowflakes[i];
-        flake->y = -(rand() % screen_height);
-        flake->x = rand() % screen_width;
+        flake->y = -(rand() % screen.height);
+        flake->x = rand() % screen.width;
     }
     srand(time(NULL));
 
@@ -132,21 +137,19 @@ int main() {
     int floor[1000] = {0};
 	for (; ;) {
         // clear buffer
-        clear_buffer(screen_buffer, screen_height * screen_width);
+        clear_buffer(&screen);
 
         ++timer;
 
         // draw landscape
-        writexy(screen_buffer, 0, screen_height - 9, landscape);
-        writexy(screen_buffer, 88, screen_height - 9, landscape);
+        writexy(&screen, 0, screen.height - 9, landscape);
+        writexy(&screen, 88, screen.height - 9, landscape);
 
 
         // draw trees
-        for (int i = 0;i < screen_height -9; i++) {
-            writexy(screen_buffer, 0, i, trees);
-            writexy(screen_buffer, 88, i, trees);
-            //writexy(screen_buffer, 0, screen_height - screen_height* 0.3-40 + i, trees);
-            //writexy(screen_buffer, 88, screen_height - screen_height* 0.3-40 + i, trees);
+        for (int i = 0;i < screen.height -9; i++) {
+            writexy(&screen, 0, i, trees);
+            writexy(&screen, 88, i, trees);
         }
 
 
@@ -156,9 +159,9 @@ int main() {
             flake->x += rand() % 3 - 1;
             flake->y++;
             // add to floor
-            if (flake->y >= screen_height-5 && 
+            if (flake->y >= screen.height-5 && 
                 flake->x > 0 && 
-                flake-> x < screen_width-1)
+                flake-> x < screen.width-1)
             {
                 // distrubute snow
                 if (floor[flake->x - 1] < floor[flake->x]) {
@@ -172,19 +175,19 @@ int main() {
                 }
             }
             // create more snow
-            if (flake->y >= screen_height-4) {
-                flake->y = -(rand() % screen_height);
-                flake->x = rand() % screen_width;
+            if (flake->y >= screen.height-4) {
+                flake->y = -(rand() % screen.height);
+                flake->x = rand() % screen.width;
             }
             if (flake->y >= 0) {
-                writexy(screen_buffer, flake->x, flake->y, "*");
+                writexy(&screen, flake->x, flake->y, "*");
             }
         }
 
         // draw snow floor
-        for (int x = 0; x < screen_width; ++x) {
+        for (int x = 0; x < screen.width; ++x) {
             for (int floor_idx = 0; floor_idx < floor[x]; ++floor_idx) {
-                writexy(screen_buffer, x,screen_height-5 - floor_idx,  "*");
+                writexy(&screen, x,screen.height-5 - floor_idx,  "*");
             }
         }
 
@@ -192,15 +195,15 @@ int main() {
         // title
         if (timer < 5*4) {
             char msg[] = "Rumbuli 1941\n";
-            writexy(screen_buffer, screen_width /2 - 12 /2, screen_height/2, msg);
+            writexy(&screen, screen.width /2 - 12 /2, screen.height/2, msg);
         }
 
 #endif
         // @Todo: write elements to array instead, then print all at once
         // @Todo: count time, subtract here, so that it is always the same framerate. 
-        print_buffer(screen_buffer);
+        print_buffer(&screen);
         platform_sleep(250000);
 	}
     // called in interrupt handler.. not really needed here right now
-    ending();
+    ending(&screen);
 }
