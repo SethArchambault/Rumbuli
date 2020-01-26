@@ -1,13 +1,17 @@
 # Rumbuli
 
 
-**Run in Linux / Max**
+**Run in Linux / Mac**
 
+```
 ./build.sh
+```
 
 **Run in Windows**
 
+```
 win_build.bat
+```
 
 **Files**
 
