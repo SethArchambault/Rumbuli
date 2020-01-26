@@ -36,9 +36,9 @@ void writexy(char * screen_buffer, int init_x, int init_y, char * string) {
         }
         else {
             assert(x +y * screen_width <= screen_width * screen_height, "writexy string is greater than screen size!");
-	    if (x < screen_width && y < screen_height) {
-		screen_buffer[x + y * screen_width] = string[i];
-	    }
+            if (x < screen_width && y < screen_height) {
+                screen_buffer[x + y * screen_width] = string[i];
+            }
             ++x;
         }
     }
@@ -51,8 +51,9 @@ void print_buffer(char * string) {
     for (int i = 0; string[i] != '\0'; ++i) {
         printf("%c", string[i]);
     }
-    printf("\n");
-    printf("\033[%dA", 1); // Move up X lines;
+     fflush(stdout);
+    //printf("\n");
+    //printf("\033[%dA", 1); // Move up X lines;
 }
 
 void printxy(int x, int y, char * string) {
@@ -203,6 +204,7 @@ int main() {
         // @Todo: count time, subtract here, so that it is always the same framerate. 
         print_buffer(screen_buffer);
         usleep(250000);
+        //usleep(2500);
 	}
 
     // never reached
