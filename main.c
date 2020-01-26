@@ -2,17 +2,26 @@
 // do not build this directly. build linux_main.c or win_main.c
 #include "main.h"
 
+#include<signal.h> // interrupt
 #include<time.h> // random
+
+// @todo: turn this into state that gets passed around
+int screen_width;
+int screen_height;
+
 
 
 #define assert(expr, msg) if(!(expr)) { printf("%s:%d %s()\nFailed: %s\nMessage: %s\n",__FILE__,__LINE__, __func__, #expr, msg); *(volatile int *)0 = 0; }
 
 #define map_width 34
 #define map_height 16
-int screen_width;
-int screen_height;
 
 
+void clear_buffer(char * buffer, int length) {
+    for (int i = 0; i < length; ++i) {
+        buffer[i] = ' ';
+    }
+}
 // BASICS
 //
 typedef struct {
@@ -42,12 +51,31 @@ void writexy(char * screen_buffer, int init_x, int init_y, char * string) {
     
 
 void print_buffer(char * string) {
-    platform_resetCursor(0,0);
+    platform_reset_cursor(0,0);
     assert(strlen(string) <= screen_width * screen_height, "print_buffer string is greater than screen size!");
     for (int i = 0; string[i] != '\0'; ++i) {
         printf("%c", string[i]);
     }
      fflush(stdout);
+}
+
+void ending() {
+    char * screen_buffer = malloc(screen_height * screen_width);
+    clear_buffer(screen_buffer, screen_height * screen_width);
+    // never reached
+    char goodbye_msg[] = "Mistakes happen and are okay.";
+    // centering
+    int goodbye_x = screen_width/ 2 - (strlen(goodbye_msg)/ 2);
+    int goodbye_y = (screen_height) / 2;
+    writexy(screen_buffer, goodbye_x,goodbye_y,goodbye_msg);
+    print_buffer(screen_buffer);
+    platform_show_cursor();
+}
+
+void interrupt_handler(int sigint) {
+    ending();
+    platform_show_cursor();
+    abort();
 }
 
 char get_input(){
@@ -63,8 +91,10 @@ char get_input(){
 
 
 int main() {
+    platform_hide_cursor();
+    signal(SIGINT, interrupt_handler);
     // p = platform layer
-    platform_setScreenSize(&screen_width, &screen_height);
+    platform_set_screen_size(&screen_width, &screen_height);
 
     char * screen_buffer = malloc(screen_height * screen_width);
 
@@ -102,9 +132,8 @@ int main() {
     int floor[1000] = {0};
 	for (; ;) {
         // clear buffer
-        for (int i = 0; i < screen_height * screen_width; ++i) {
-            screen_buffer[i] = ' ';
-        }
+        clear_buffer(screen_buffer, screen_height * screen_width);
+
         ++timer;
 
         // draw landscape
@@ -172,12 +201,6 @@ int main() {
         print_buffer(screen_buffer);
         platform_sleep(250000);
 	}
-
-    // never reached
-    char goodbye_msg[] = "Mistakes happen and are okay.";
-    // centering
-    int goodbye_x = screen_width/ 2 - (strlen(goodbye_msg)/ 2);
-    int goodbye_y = (screen_height) / 2;
-    writexy(screen_buffer, goodbye_x,goodbye_y,goodbye_msg);
-    print_buffer(screen_buffer);
+    // called in interrupt handler.. not really needed here right now
+    ending();
 }
