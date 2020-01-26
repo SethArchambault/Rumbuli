@@ -6,6 +6,8 @@
 
 // @todo: turn this into state that gets passed around
 
+int player_x = 0;
+
 typedef struct {
     int width;
     int height;
@@ -75,21 +77,22 @@ void ending(Screen * screen) {
     writexy(screen, goodbye_x,goodbye_y,goodbye_msg);
     print_buffer(screen);
     platform_show_cursor();
+    platform_reset_signals();
 }
 
 void interrupt_handler(int sigint) {
     Screen screen;
     screen_init(&screen);
     ending(&screen);
-    platform_show_cursor();
     abort();
 }
 
 
-#if 0
 // not used right now
 char get_input(){
+	system ("/bin/stty -echo");
 	system ("/bin/stty raw");
+	system ("/bin/stty -echo");
 	char input = '0';
 	while((input=getchar()) == 0) {
 			  putchar(input);
@@ -97,7 +100,6 @@ char get_input(){
 	system ("/bin/stty cooked");
 	return input;
 }
-#endif
 
 
 
@@ -105,10 +107,11 @@ int main() {
     Screen screen;
     screen_init(&screen);
     
+    platform_remap_signals();
     platform_hide_cursor();
     signal(SIGINT, interrupt_handler);
 
-	//char input = 0;
+	char input = 0;
 #define snowflakes_max 100 
     V2 snowflakes[snowflakes_max]; 
     for (int i = 0; i < snowflakes_max; ++i) {
@@ -118,7 +121,6 @@ int main() {
     }
     srand(time(NULL));
 
-	//for (; input != 'q';) {
     
     // at some point we'll want to just bring this into the game editor, and allow changing 
     // color + texture. then we'll just reference everything based on that. 
@@ -138,7 +140,17 @@ int main() {
     int timer = 0;
 
     int floor[1000] = {0};
-	for (; ;) {
+	for (; input != 'q';) {
+        input = 0;
+        if (kbhit()) { 
+		 input = get_input();
+        }
+        if (input == 'd') {
+            player_x++;
+        }
+        if (input == 'a') {
+            player_x--;
+        }
         // clear buffer
         clear_buffer(&screen);
 
@@ -198,8 +210,15 @@ int main() {
             writexy(&screen, screen.width /2 - 12 /2, screen.height/2, msg);
         }
 
+        for (int y = 0; y < 10; ++y) {
+            for (int x = 0; x < 10; ++x) {
+                writexy(&screen, player_x + x, 20 + y, "@");
+            }
+        }
+
         // @Todo: count time, subtract here, so that it is always the same framerate. 
         print_buffer(&screen);
+
         platform_sleep(250000);
 	}
     // called in interrupt handler.. not really needed here right now
