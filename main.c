@@ -47,7 +47,7 @@ void print_buffer(char * string) {
     for (int i = 0; string[i] != '\0'; ++i) {
         printf("%c", string[i]);
     }
-     fflush(stdout);
+    fflush(stdout);
 }
 
 char get_input(){
