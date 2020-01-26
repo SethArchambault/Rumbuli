@@ -1,13 +1,15 @@
 // ctrl-c to quit currently
 
-#include<stdlib.h>
 #include<stdio.h>
+#include<stdlib.h>
 #include<string.h>
+#ifdef _WIN64
+#include<windows.h>
+#else
 #include<time.h> // random
 #include <sys/ioctl.h>
-#include <stdio.h>
 #include <unistd.h>
-
+#endif
 
 #define assert(expr, msg) if(!(expr)) { printf("%s:%d %s()\nFailed: %s\nMessage: %s\n",__FILE__,__LINE__, __func__, #expr, msg); *(volatile int *)0 = 0; }
 
@@ -92,12 +94,17 @@ char get_input(){
 
 
 int main() {
+#ifdef _WIN64
+    screen_height = 100;
+    screen_width = 100;
+#else
     { // get screen height and width
         struct winsize w;
         ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
         screen_height = w.ws_row;
         screen_width = w.ws_col;
     }
+#endif
 
     char * screen_buffer = malloc(screen_height * screen_width);
 
@@ -110,7 +117,10 @@ int main() {
         flake->y = -(rand() % screen_height);
         flake->x = rand() % screen_width;
     }
+#ifdef _WIN64
+#else
     srand(time(NULL));  
+#endif
 	//for (; input != 'q';) {
     
     // at some point we'll want to just bring this into the game editor, and allow changing 
@@ -202,7 +212,11 @@ int main() {
         // @Todo: write elements to array instead, then print all at once
         // @Todo: count time, subtract here, so that it is always the same framerate. 
         print_buffer(screen_buffer);
+#ifdef _WIN64
+        Sleep(2);
+#else
         usleep(250000);
+#endif
 	}
 
     // never reached
