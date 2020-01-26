@@ -1,4 +1,3 @@
 clear && printf '\e[3J'
-gcc main.c && ./a.out; rm a.out; exit 1
-#gcc -Wall -Werror main.c && ./a.out; rm a.out; exit 1
-#tcc main.c && ./a.out; rm a.out; exit 1
+#gcc linux_main.c && ./a.out; rm a.out
+gcc -Wall -Werror linux_main.c && ./a.out; rm a.out
