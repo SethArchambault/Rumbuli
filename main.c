@@ -2,6 +2,8 @@
 // do not build this directly. build linux_main.c or win_main.c
 #include "main.h"
 
+#include<time.h> // random
+
 
 #define assert(expr, msg) if(!(expr)) { printf("%s:%d %s()\nFailed: %s\nMessage: %s\n",__FILE__,__LINE__, __func__, #expr, msg); *(volatile int *)0 = 0; }
 
@@ -101,7 +103,7 @@ int main() {
         flake->y = -(rand() % screen_height);
         flake->x = rand() % screen_width;
     }
-    platform_setRandomSeed();
+    srand(time(NULL));
 
 	//for (; input != 'q';) {
     
