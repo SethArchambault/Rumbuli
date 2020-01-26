@@ -42,38 +42,12 @@ void writexy(char * screen_buffer, int init_x, int init_y, char * string) {
     
 
 void print_buffer(char * string) {
-    printf("\033[%dA", screen_height); // Move up X lines;
-    printf("\033[%dD", screen_width); // Move left X column;
+    platform_resetCursor(0,0);
+    assert(strlen(string) <= screen_width * screen_height, "print_buffer string is greater than screen size!");
     for (int i = 0; string[i] != '\0'; ++i) {
         printf("%c", string[i]);
     }
      fflush(stdout);
-    //printf("\n");
-    //printf("\033[%dA", 1); // Move up X lines;
-}
-
-void printxy(int x, int y, char * string) {
-    printf("\033[%dA", screen_height); // Move up X lines;
-    printf("\033[%dD", screen_width); // Move left X column;
-    if (y != 0) {
-        printf("\033[%dB", y); // Move downX lines;
-    }
-    if (x != 0) {
-        printf("\033[%dC", x); // Move right X column;
-    }
-    int additional_newline = 0;
-    for (int i = 0; string[i] != '\0'; ++i) {
-        assert(i <= screen_width * screen_height, "print string is greater than screen size!");
-        printf("%c", string[i]);
-        if (string[i] == '\n') {
-            ++additional_newline;
-            printf("\033[%dC", x); // Move right X column;
-        } 
-
-    }
-    printf("\033[%dA", y + additional_newline); // Move up X lines;
-    printf("\033[%dD", x); // Move left X column;
-    printf("\033[%dB", screen_height); // Move down X lines;
 }
 
 char get_input(){
@@ -204,5 +178,6 @@ int main() {
     // centering
     int goodbye_x = screen_width/ 2 - (strlen(goodbye_msg)/ 2);
     int goodbye_y = (screen_height) / 2;
-    printxy(goodbye_x,goodbye_y,goodbye_msg);
+    writexy(screen_buffer, goodbye_x,goodbye_y,goodbye_msg);
+    print_buffer(screen_buffer);
 }

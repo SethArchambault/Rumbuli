@@ -11,5 +11,8 @@ void platform_setScreenSize(int * screen_width, int * screen_height) {
 void platform_sleep(int micro_seconds) {
     usleep(micro_seconds);
 }
+void platform_resetCursor(int y, int x) {
+    printf("\033[%d;%dH", y,x);
+}
 
 #include"main.c"
