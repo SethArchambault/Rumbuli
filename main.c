@@ -76,8 +76,7 @@ void ending(Screen * screen) {
     int goodbye_y = (screen->height) / 2;
     writexy(screen, goodbye_x,goodbye_y,goodbye_msg);
     print_buffer(screen);
-    platform_show_cursor();
-    platform_reset_signals();
+    platform_breakdown();
 }
 
 void interrupt_handler(int sigint) {
@@ -87,28 +86,11 @@ void interrupt_handler(int sigint) {
     abort();
 }
 
-
-// not used right now
-char get_input(){
-	system ("/bin/stty -echo");
-	system ("/bin/stty raw");
-	system ("/bin/stty -echo");
-	char input = '0';
-	while((input=getchar()) == 0) {
-			  putchar(input);
-	}
-	system ("/bin/stty cooked");
-	return input;
-}
-
-
-
 int main() {
     Screen screen;
     screen_init(&screen);
     
-    platform_remap_signals();
-    platform_hide_cursor();
+    platform_setup();
     signal(SIGINT, interrupt_handler);
 
 	char input = 0;
@@ -121,11 +103,9 @@ int main() {
     }
     srand(time(NULL));
 
-    
     // at some point we'll want to just bring this into the game editor, and allow changing 
     // color + texture. then we'll just reference everything based on that. 
-    // we can have texture packs and color packs. I like the idea of creative restrictions built in. 
-
+    // we can have texture packs and color packs. I like the idea of creative restrictions built in.
     
     char landscape[] = 
         "--         -------         ----------                ---      -------          --------- \n"
@@ -140,10 +120,13 @@ int main() {
     int timer = 0;
 
     int floor[1000] = {0};
+    void * timebase_info = NULL; 
+    platform_time_setup(timebase_info);
 	for (; input != 'q';) {
+        uint64_t perf_start = platform_time();
         input = 0;
-        if (kbhit()) { 
-		 input = get_input();
+        while(platform_check_input()) { 
+		     input = platform_get_input();
         }
         if (input == 'd') {
             player_x++;
@@ -196,6 +179,16 @@ int main() {
                 writexy(&screen, flake->x, flake->y, "*");
             }
         }
+        // player
+        for (int y = 0; y < 10; ++y) {
+            for (int x = 0; x < 10; ++x) {
+                int current_x =  player_x +x;
+                if (floor[current_x] > floor[player_x]) {
+                    floor[current_x] = floor[player_x+5]; 
+                }
+                writexy(&screen, current_x, screen.height-5 - y - floor[player_x+5], "@");
+            }
+        }
 
         // draw snow floor
         for (int x = 0; x < screen.width; ++x) {
@@ -210,16 +203,23 @@ int main() {
             writexy(&screen, screen.width /2 - 12 /2, screen.height/2, msg);
         }
 
-        for (int y = 0; y < 10; ++y) {
-            for (int x = 0; x < 10; ++x) {
-                writexy(&screen, player_x + x, 20 + y, "@");
-            }
-        }
-
         // @Todo: count time, subtract here, so that it is always the same framerate. 
+        uint64_t perf_end = platform_time();
+        uint64_t perf_elapsed = perf_end-perf_start;
+        //uint64_t perf_micro = perf_elapsed /2;
+        uint64_t perf_micro = platform_time_to_micro(perf_elapsed, timebase_info);
+        char perf_time_string[40];
+        int time_to_wait = 20000;
+        sprintf(perf_time_string, "%d %llu", perf_micro < time_to_wait, perf_micro);
+        writexy(&screen, 0, 0, perf_time_string);
+
         print_buffer(&screen);
 
-        platform_sleep(250000);
+        if (perf_micro < time_to_wait) {
+            platform_sleep(time_to_wait - perf_micro);
+        }
+        //platform_sleep(time_to_wait);
+
 	}
     // called in interrupt handler.. not really needed here right now
     ending(&screen);
