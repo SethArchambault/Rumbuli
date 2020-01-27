@@ -4,8 +4,9 @@
 
 #include <sys/select.h> // input
 
-typedef u_int64_t uint64_t;
-
+// performance
+    #include <mach/mach.h>
+    #include <mach/mach_time.h>
 
 void platform_set_screen_size(int * screen_width, int * screen_height) {
     struct winsize w;
@@ -68,12 +69,19 @@ char platform_get_input(){
 }
 
 void platform_time_setup(void * timebase_info) {
+    timebase_info = malloc(sizeof (mach_timebase_info_data_t));
+    mach_timebase_info((mach_timebase_info_data_t *)timebase_info);
 }
 uint64_t platform_time() {
-    return 0;
+    return mach_absolute_time();
 }
 uint64_t platform_time_to_micro(uint64_t perf_elapsed, void * timebase_info_void) {
-    return 0;
+    static mach_timebase_info_data_t timebase_info;
+    mach_timebase_info(&timebase_info);
+    uint64_t elapsedNano = perf_elapsed * timebase_info.numer / timebase_info.denom;
+    float elapsedMicro = elapsedNano / 1000.0f;
+    float elapsedMili = elapsedMicro / 1000.0f;
+    return elapsedMili;
 }
 
 #include"main.c"
