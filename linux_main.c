@@ -81,7 +81,7 @@ uint64_t platform_time_to_micro(uint64_t perf_elapsed, void * timebase_info_void
     uint64_t elapsedNano = perf_elapsed * timebase_info.numer / timebase_info.denom;
     float elapsedMicro = elapsedNano / 1000.0f;
     float elapsedMili = elapsedMicro / 1000.0f;
-    return elapsedMicro;
+    return elapsedMili;
 }
 
 #include"main.c"

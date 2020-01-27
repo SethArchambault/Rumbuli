@@ -128,11 +128,15 @@ int main() {
         while(platform_check_input()) { 
 		     input = platform_get_input();
         }
+        int prev_player_x = player_x;
         if (input == 'd') {
             player_x++;
         }
         if (input == 'a') {
             player_x--;
+        }
+        if (floor[player_x+5] > floor[prev_player_x+5]+3 ) {
+            player_x = prev_player_x;
         }
         // clear buffer
         clear_buffer(&screen);
@@ -179,23 +183,29 @@ int main() {
                 writexy(&screen, flake->x, flake->y, "*");
             }
         }
-        // player
-        for (int y = 0; y < 10; ++y) {
-            for (int x = 0; x < 10; ++x) {
-                int current_x =  player_x +x;
-                if (floor[current_x] > floor[player_x]) {
-                    floor[current_x] = floor[player_x+5]; 
-                }
-                writexy(&screen, current_x, screen.height-5 - y - floor[player_x+5], "@");
-            }
-        }
-
         // draw snow floor
         for (int x = 0; x < screen.width; ++x) {
             for (int floor_idx = 0; floor_idx < floor[x]; ++floor_idx) {
                 writexy(&screen, x,screen.height-5 - floor_idx,  "*");
             }
         }
+        // draw player
+        for (int y = 0; y < 10; ++y) {
+            for (int x = 0; x < 10; ++x) {
+                int current_x =  player_x +x;
+                int floor_current = floor[current_x];
+                int floor_player = floor[player_x+5];
+                /*
+                if (y == 0 &&
+                    floor_current > floor_player &&
+                    floor_current < floor_player + 5) {
+                    floor[current_x]--; 
+                }
+                */
+                writexy(&screen, current_x, screen.height-5 - y - floor[player_x+5], "@");
+            }
+        }
+
 
         // title
         if (timer < 5*4) {
