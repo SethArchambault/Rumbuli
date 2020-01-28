@@ -1,5 +1,7 @@
 #include "main.h"
 #include<windows.h>
+#include<conio.h>
+
 
 void platform_set_screen_size(int * screen_width, int * screen_height) {
     // @Todo: get correct screen_height * width
@@ -31,6 +33,39 @@ void platform_show_cursor() {
     GetConsoleCursorInfo(out, &cursorInfo);
     cursorInfo.bVisible = 1;
     SetConsoleCursorInfo(out, &cursorInfo);
+}
+void platform_setup() {
+	/*
+	system ("/bin/stty raw");
+    printf("\e[?25l");
+    */
+}
+void platform_breakdown() {
+	/*
+	//system ("/bin/stty echo");
+    //system("setterm -cursor on");
+	system ("/bin/stty cooked");
+    printf("\e[?25h");
+    */
+}
+
+int platform_check_input(void) {
+	return _kbhit() != 0;
+}
+
+char platform_get_input(){
+	char input = '0';
+	input = getch();
+	return input;
+}
+
+void platform_time_setup(void * timebase_info) {
+}
+uint64_t platform_time() {
+    return 0;
+}
+uint64_t platform_time_to_micro(uint64_t perf_elapsed, void * timebase_info_void) {
+    return 0;
 }
 
 #include "main.c"
