@@ -94,7 +94,7 @@ int main() {
     signal(SIGINT, interrupt_handler);
 
 	char input = 0;
-#define snowflakes_max 100 
+#define snowflakes_max 1000 
     V2 snowflakes[snowflakes_max]; 
     for (int i = 0; i < snowflakes_max; ++i) {
         V2 *flake = &snowflakes[i];

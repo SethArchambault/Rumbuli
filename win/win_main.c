@@ -1,6 +1,8 @@
-#include "main.h"
+#include "..\\main.h"
 #include<windows.h>
 #include<conio.h>
+
+typedef unsigned __int64 uint64_t;
 
 
 void platform_set_screen_size(int * screen_width, int * screen_height) {
@@ -68,5 +70,5 @@ uint64_t platform_time_to_micro(uint64_t perf_elapsed, void * timebase_info_void
     return 0;
 }
 
-#include "main.c"
+#include "..\\main.c"
 
