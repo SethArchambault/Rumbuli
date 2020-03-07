@@ -57,7 +57,7 @@ int platform_check_input(void) {
 
 char platform_get_input(){
 	char input = '0';
-	input = getch();
+	input = _getch();
 	return input;
 }
 

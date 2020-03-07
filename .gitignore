@@ -2,3 +2,5 @@ a.out
 *.swp
 *.exe
 *~
+win/rumbuli/.vs
+win/rumbuli/Debug

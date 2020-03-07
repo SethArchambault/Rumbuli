@@ -14,23 +14,25 @@ typedef struct {
     char * buffer;
 } Screen;
 
+typedef struct {
+    int x;
+    int y;
+} V2;
+
 #define assert(expr, msg) if(!(expr)) { printf("%s:%d %s()\nFailed: %s\nMessage: %s\n",__FILE__,__LINE__, __func__, #expr, msg); *(volatile int *)0 = 0; }
 
 #define map_width 34
 #define map_height 16
 
-
 void clear_buffer(Screen * screen) {
-    for (int i = 0; i < screen->width * screen->height; ++i) {
+    int i;
+    for (i = 0; i < screen->width * screen->height; ++i) {
         screen->buffer[i] = ' ';
     }
+    ++i;
+    screen->buffer[i] = '\0';
+
 }
-// BASICS
-//
-typedef struct {
-    int x;
-    int y;
-} V2;
 
 void writexy(Screen * screen, int init_x, int init_y, char * string) {
     int x = init_x;
@@ -51,21 +53,20 @@ void writexy(Screen * screen, int init_x, int init_y, char * string) {
         }
     }
 }
-    
 
 void print_buffer(Screen * screen) {
     platform_reset_cursor(0,0);
-    assert(strlen(screen->buffer) <= screen->width * screen->height, "print_buffer string is greater than screen size!");
-    for (int i = 0; screen->buffer[i] != '\0'; ++i) {
-        printf("%c", screen->buffer[i]);
-    }
+    int buffer_len = strlen(screen->buffer);
+    int buffer_max_size = screen->width * screen->height + 1;
+    assert(buffer_len <= buffer_max_size, "print_buffer string is greater than screen size!");
+    printf("%c", screen->buffer);
     fflush(stdout);
 }
 
 // used in the beginning and in the interrupt 
 void screen_init(Screen * screen) {
     platform_set_screen_size(&screen->width, &screen->height);
-    screen->buffer = malloc(screen->height * screen->width);
+    screen->buffer = malloc(screen->height * screen->width + 1);
 }
 
 void ending(Screen * screen) {
@@ -94,7 +95,7 @@ int main() {
     signal(SIGINT, interrupt_handler);
 
 	char input = 0;
-#define snowflakes_max 1000 
+#define snowflakes_max 100 
     V2 snowflakes[snowflakes_max]; 
     for (int i = 0; i < snowflakes_max; ++i) {
         V2 *flake = &snowflakes[i];
